@@ -208,7 +208,7 @@ def load_character(character_name, save_directory="data/save_games"):
         "INVENTORY": "inventory",
         "ACTIVE_QUESTS": "active_quests",
         "COMPLETED_QUESTS": "completed_quests"
-    }
+        }
 
     loaded_character = {}
     for old_key, new_key in key_mapping.items():
@@ -422,7 +422,11 @@ def validate_character_data(character):
     # Check that lists are actually lists
     
     # Below are the required fields needed for a full, valid save
-   required_fields = {
+def validate_character_data(character):
+    """
+    Validate character dictionary has all required fields
+    """
+    required_fields = {
         "name": str,
         "class": str,
         "level": int,
@@ -435,17 +439,16 @@ def validate_character_data(character):
         "inventory": list,
         "active_quests": list,
         "completed_quests": list
-        }
+    }
 
-    for key, expected_type in required_fields.items():
-        if key not in character:
-            raise InvalidSaveDataError(f"Missing required field: {key}")
-        value = character[key]
+    for field, expected_type in required_fields.items():
+        if field not in character:
+            raise InvalidSaveDataError(f"Missing required field: {field}")
+        value = character[field]
         if not isinstance(value, expected_type):
-            raise InvalidSaveDataError(f"Field '{key}' must be of type {expected_type.__name__}")
+            raise InvalidSaveDataError(f"Field '{field}' must be of type {expected_type.__name__}")
 
     return True
-
 # ============================================================================
 # TESTING
 # ============================================================================
