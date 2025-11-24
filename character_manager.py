@@ -160,7 +160,6 @@ def load_character(character_name, save_directory="data/save_games"):
     # Validate data format → InvalidSaveDataError
     # Parse comma-separated lists back into Python lists
 
-    # building the filename
     filename = f"{character_name}_save.txt"
     filepath = os.path.join(save_directory, filename)
 
@@ -173,27 +172,29 @@ def load_character(character_name, save_directory="data/save_games"):
     except Exception:
         raise SaveFileCorruptedError("Could not read save file")
 
-    character = {}
+    character_raw = {}
     try:
         for line in lines:
+            if ": " not in line:
+                continue  # skip empty lines
             key, value = line.strip().split(": ", 1)
-            character[key] = value
+            character_raw[key] = value
     except Exception:
         raise InvalidSaveDataError("Save data format is invalid")
 
     # Convert numeric fields
     int_fields = ["LEVEL", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC", "EXPERIENCE", "GOLD"]
     for field in int_fields:
-        if field in character:
-            character[field] = int(character[field])
+        if field in character_raw:
+            character_raw[field] = int(character_raw[field])
 
     # Convert lists
     list_fields = ["INVENTORY", "ACTIVE_QUESTS", "COMPLETED_QUESTS"]
     for field in list_fields:
-        if field in character:
-            character[field] = character[field].split(",") if character[field] else []
+        if field in character_raw:
+            character_raw[field] = character_raw[field].split(",") if character_raw[field] else []
 
-    # Map keys to lowercase for consistency with original character dict
+    # Map keys to lowercase for consistency
     key_mapping = {
         "NAME": "name",
         "CLASS": "class",
@@ -209,9 +210,13 @@ def load_character(character_name, save_directory="data/save_games"):
         "COMPLETED_QUESTS": "completed_quests"
     }
 
-    loaded_character = {new_key: character[old_key] for old_key, new_key in key_mapping.items()}
-    return loaded_character
+    loaded_character = {}
+    for old_key, new_key in key_mapping.items():
+        if old_key not in character_raw:
+            raise InvalidSaveDataError(f"Missing field in save file: {old_key}")
+        loaded_character[new_key] = character_raw[old_key]
 
+    return loaded_character
     
 
 def list_saved_characters(save_directory="data/save_games"):
@@ -417,37 +422,27 @@ def validate_character_data(character):
     # Check that lists are actually lists
     
     # Below are the required fields needed for a full, valid save
-    required_fields = {
-        "NAME": str,
-        "CLASS": str,
-        "LEVEL": int,
-        "HEALTH": int,
-        "MAX_HEALTH": int,
-        "STRENGTH": int,
-        "MAGIC": int,
-        "EXPERIENCE": int,
-        "GOLD": int,
-        "INVENTORY": list,
-        "ACTIVE_QUESTS": list,
-        "COMPLETED_QUESTS": list
+   required_fields = {
+        "name": str,
+        "class": str,
+        "level": int,
+        "health": int,
+        "max_health": int,
+        "strength": int,
+        "magic": int,
+        "experience": int,
+        "gold": int,
+        "inventory": list,
+        "active_quests": list,
+        "completed_quests": list
     }
 
-    for field, expected_type in required_fields.items():
-        if field not in character:
-            raise InvalidSaveDataError(f"Missing required field: {field}")
-
-        value = character[field]
-
-        # Check type
-        if expected_type == int:
-            if not isinstance(value, int):
-                raise InvalidSaveDataError(f"Field must be an integer: {field}")
-        elif expected_type == list:
-            if not isinstance(value, list):
-                raise InvalidSaveDataError(f"Field must be a list: {field}")
-        else:  # str
-            if not isinstance(value, str):
-                raise InvalidSaveDataError(f"Field must be a string: {field}")
+    for key, expected_type in required_fields.items():
+        if key not in character:
+            raise InvalidSaveDataError(f"Missing required field: {key}")
+        value = character[key]
+        if not isinstance(value, expected_type):
+            raise InvalidSaveDataError(f"Field '{key}' must be of type {expected_type.__name__}")
 
     return True
 
