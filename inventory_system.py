@@ -171,25 +171,19 @@ def use_item(character, item_id, item_data):
     if item_id not in character["inventory"]:
         raise ItemNotFoundError(f"Item '{item_id}' not found in inventory")
 
-    item = item_data[item_id]
+    if item_data["type"] != "consumable":
+        raise InvalidItemTypeError("Item type cannot be used")
 
-    # Item must be consumable
-    if item["type"] != "consumable":
-        raise InvalidItemTypeError(f"Item '{item_id}' is not consumable")
-
-    # Parse effect: "stat:value"
-    stat, value = item["effect"].split(":")
+    # Parse effect such as "health:20"
+    stat, value = item_data["effect"].split(":")
     value = int(value)
 
-    # Apply effect
-    character[stat] += value
+    character[stat] = min(character.get("max_" + stat, float('inf')), character[stat] + value)
 
-    # Remove item from inventory
     character["inventory"].remove(item_id)
 
     return f"Used {item_id}, {stat} increased by {value}"
 
-    
 
 def equip_weapon(character, item_id, item_data):
     """
@@ -390,23 +384,19 @@ def purchase_item(character, item_id, item_data):
         InventoryFullError if inventory is full
     """
 
-    item = item_data[item_id]
+    cost = item_data["cost"]
 
-    # Check gold
-    if character["gold"] < item["cost"]:
-        raise InsufficientResourcesError("Not enough gold to purchase this item.")
+    if character["gold"] < cost:
+        raise InsufficientResourcesError("Not enough gold to purchase this item")
 
-    # Check inventory space
-    if len(character["inventory"]) >= MAX_INVENTORY_SIZE:
-        raise InventoryFullError("Inventory is full.")
+    # Check inventory size if required by your project
+    # if len(character["inventory"]) >= MAX_INV:
+    #     raise InventoryFullError("Inventory is full")
 
-    # Subtract gold
-    character["gold"] -= item["cost"]
-
-    # Add item
+    character["gold"] -= cost
     character["inventory"].append(item_id)
-
     return True
+
 
     # TODO: Implement purchasing
     # Check if character has enough gold
