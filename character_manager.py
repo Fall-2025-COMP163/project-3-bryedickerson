@@ -435,7 +435,7 @@ def validate_character_data(character):
         "inventory": list,
         "active_quests": list,
         "completed_quests": list
-    }
+        }
 
     for key, expected_type in required_fields.items():
         if key not in character:
