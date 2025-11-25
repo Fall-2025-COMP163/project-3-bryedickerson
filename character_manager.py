@@ -166,57 +166,50 @@ def load_character(character_name, save_directory="data/save_games"):
     if not os.path.exists(filepath):
         raise CharacterNotFoundError(f"Save file not found for: {character_name}")
 
+    # Step 1: Read file safely
     try:
         with open(filepath, "r") as file:
             lines = file.readlines()
     except Exception:
         raise SaveFileCorruptedError("Could not read save file")
 
-    character_raw = {}
+    character_raw = {} # unformatted (raw) information is made into a dictionary
+
+    # Step 2: Parse key-value pairs
     try:
         for line in lines:
-            if ": " not in line:
-                continue  # skip empty lines
-            key, value = line.strip().split(": ", 1)
+            line = line.strip()
+            if not line or ": " not in line:
+                continue  # skip empty or malformed lines
+
+            key, value = line.split(": ", 1)
+            key = key.strip()
+            value = value.strip()
+
             character_raw[key] = value
+
     except Exception:
         raise InvalidSaveDataError("Save data format is invalid")
 
-    # Convert numeric fields
-    int_fields = ["LEVEL", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC", "EXPERIENCE", "GOLD"]
-    for field in int_fields:
-        if field in character_raw:
-            character_raw[field] = int(character_raw[field])
+    # Step 3: Convert certain fields to correct types
+    try:
+        # Numeric fields
+        int_fields = ["level", "health", "max_health", "strength", "magic", "experience", "gold"]
+        for field in int_fields:
+            if field in character_raw:
+                character_raw[field] = int(character_raw[field])
 
-    # Convert lists
-    list_fields = ["INVENTORY", "ACTIVE_QUESTS", "COMPLETED_QUESTS"]
-    for field in list_fields:
-        if field in character_raw:
-            character_raw[field] = character_raw[field].split(",") if character_raw[field] else []
+        # List fields
+        list_fields = ["inventory", "active_quests", "completed_quests"]
+        for field in list_fields:
+            if field in character_raw:
+                # Empty string becomes empty list
+                character_raw[field] = character_raw[field].split(",") if character_raw[field] else []
 
-    # Map keys to lowercase for consistency
-    key_mapping = {
-        "NAME": "name",
-        "CLASS": "class",
-        "LEVEL": "level",
-        "HEALTH": "health",
-        "MAX_HEALTH": "max_health",
-        "STRENGTH": "strength",
-        "MAGIC": "magic",
-        "EXPERIENCE": "experience",
-        "GOLD": "gold",
-        "INVENTORY": "inventory",
-        "ACTIVE_QUESTS": "active_quests",
-        "COMPLETED_QUESTS": "completed_quests"
-        }
+    except Exception:
+        raise InvalidSaveDataError("Failed to convert save data types")
 
-    loaded_character = {}
-    for old_key, new_key in key_mapping.items():
-        if old_key not in character_raw:
-            raise InvalidSaveDataError(f"Missing field in save file: {old_key}")
-        loaded_character[new_key] = character_raw[old_key]
-
-    return loaded_character
+    return character_raw
     
 
 def list_saved_characters(save_directory="data/save_games"):
