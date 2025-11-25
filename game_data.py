@@ -47,50 +47,45 @@ def load_quests(filename="data/quests.txt"):
     if not os.path.exists(filename):
         raise MissingDataFileError(f"Quest file not found: {filename}")
 
-    quests = {} # empty dictionary at the beginning (no quests)
+    quests = {}
     try:
         with open(filename, "r") as f:
             lines = f.read().splitlines()
 
         current_quest = {}
-        for line in lines + [""]:  # Add empty line to handle last quest
+        for line in lines + [""]:
             line = line.strip()
             if line == "":
                 if current_quest:
-                    # Validate required fields
-                    required_fields = ["QUEST_ID", "TITLE", "DESCRIPTION", 
+                    required_fields = ["QUEST_ID", "TITLE", "DESCRIPTION",
                                        "REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL", "PREREQUISITE"]
                     for field in required_fields:
                         if field not in current_quest:
                             raise InvalidDataFormatError(f"Missing field '{field}' in quest")
-                    # Convert all keys to lowercase (test expects lowercase)
-                    current_quest = {k.lower(): v for k, v in current_quest.items()}
-                    quest_id = current_quest["quest_id"]
-                    quests[quest_id] = current_quest
-
+                    quest_id = current_quest["QUEST_ID"]
+                    # Normalize keys to lowercase (should match test case calls)
+                    normalized_quest = {k.lower(): v for k, v in current_quest.items()}
+                    quests[quest_id] = normalized_quest
                     current_quest = {}
                 continue
 
             if ": " not in line:
-                raise InvalidDataFormatError(f"Invalid line format: {line}")
+                raise InvalidDataFormatError(f"Invalid line format: {line}") # Custom exception for Invalid data formats
 
             key, value = line.split(": ", 1)
             key = key.strip()
             value = value.strip()
-
-            # Convert numeric fields to int
             if key in ["REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL"]:
                 try:
                     value = int(value)
                 except ValueError:
                     raise InvalidDataFormatError(f"Expected integer for {key}, got '{value}'")
-
             current_quest[key] = value
 
-    except InvalidDataFormatError: # Raises InvalidDataFormat error if it occurs
+    except InvalidDataFormatError:
         raise
-    except Exception as e: 
-        raise CorruptedDataError(f"Could not read quest file: {e}") # Raises a message if file is corrupted
+    except Exception as e:
+        raise CorruptedDataError(f"Could not read quest file: {e}")
 
     return quests
 
@@ -130,17 +125,18 @@ def load_items(filename="data/items.txt"):
             lines = f.read().splitlines()
 
         current_item = {}
-        for line in lines + [""]:  # Add empty line to process last item
+        for line in lines + [""]:
             line = line.strip()
             if line == "":
                 if current_item:
-                    # Validate required fields
                     required_fields = ["ITEM_ID", "NAME", "TYPE", "EFFECT", "COST", "DESCRIPTION"]
                     for field in required_fields:
                         if field not in current_item:
                             raise InvalidDataFormatError(f"Missing field '{field}' in item")
                     item_id = current_item["ITEM_ID"]
-                    items[item_id] = current_item
+                    # Normalize keys to lowercase
+                    normalized_item = {k.lower(): v for k, v in current_item.items()}
+                    items[item_id] = normalized_item
                     current_item = {}
                 continue
 
@@ -150,14 +146,11 @@ def load_items(filename="data/items.txt"):
             key, value = line.split(": ", 1)
             key = key.strip()
             value = value.strip()
-
-            # Convert numeric fields
             if key == "COST":
                 try:
                     value = int(value)
                 except ValueError:
                     raise InvalidDataFormatError(f"Expected integer for COST, got '{value}'")
-
             current_item[key] = value
 
     except InvalidDataFormatError:
