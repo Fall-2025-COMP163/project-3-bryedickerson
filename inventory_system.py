@@ -205,37 +205,42 @@ def equip_weapon(character, item_id, item_data):
         ItemNotFoundError if item not in inventory
         InvalidItemTypeError if item type is not 'weapon'
     """
-
+# --- Step 1: Ensure the weapon is in inventory ---
     if item_id not in character["inventory"]:
         raise ItemNotFoundError(f"Weapon '{item_id}' not found in inventory")
 
-    item = item_data[item_id]
-
-    # Must be a weapon
-    if item["type"] != "weapon":
+    # --- Step 2: Ensure the item type is correct ---
+    if item_data.get("type") != "weapon":
         raise InvalidItemTypeError(f"Item '{item_id}' is not a weapon")
 
-    # If another weapon is already equipped: remove its effect
-    if character.get("equipped_weapon"):
-        old_weapon = character["equipped_weapon"]
-        old_data = item_data[old_weapon]
-        stat, value = old_data["effect"].split(":")
-        character[stat] -= int(value)  # remove old bonus
+    # --- Step 3: Unequip current weapon if any ---
+    current_weapon = character.get("equipped_weapon")
+    if current_weapon:
+        # Remove the bonus from the old weapon
+        effect = current_weapon.get("effect", "")
+        if effect:
+            stat, value = effect.split(":")
+            value = int(value)
+            character[stat] -= value
 
-        # Add old weapon back to inventory
-        character["inventory"].append(old_weapon)
+        # Put old weapon back in inventory
+        character["inventory"].append(current_weapon["id"])
 
-    # Apply new weapon effect
-    stat, value = item["effect"].split(":")
-    character[stat] += int(value)
+    # --- Step 4: Equip new weapon ---
+    # Apply the new weapon's bonus
+    effect = item_data.get("effect", "")
+    if effect:
+        stat, value = effect.split(":")
+        value = int(value)
+        character[stat] += value
 
     # Set the equipped weapon
-    character["equipped_weapon"] = item_id
+    character["equipped_weapon"] = {"id": item_id, "effect": effect}
 
-    # Remove new weapon from inventory
+    # Remove the new weapon from inventory
     character["inventory"].remove(item_id)
 
-    return f"Equipped {item_id}, {stat} increased by {value}"
+    return f"{item_id} equipped!"
 
     # TODO: Implement weapon equipping
     # Check item exists and is type 'weapon'
@@ -383,18 +388,18 @@ def purchase_item(character, item_id, item_data):
         InsufficientResourcesError if not enough gold
         InventoryFullError if inventory is full
     """
+# Check if character has enough gold
+    cost = item_data.get('cost', 0)
+    if character['gold'] < cost:
+        raise InsufficientResourcesError(f"Not enough gold to purchase {item_id} (cost: {cost})")
 
-    cost = item_data["cost"]
+    # Deduct gold
+    character['gold'] -= cost
 
-    if character["gold"] < cost:
-        raise InsufficientResourcesError("Not enough gold to purchase this item")
+    # Add item to inventory
+    character['inventory'].append(item_id)
 
-    # Check inventory size if required by your project
-    # if len(character["inventory"]) >= MAX_INV:
-    #     raise InventoryFullError("Inventory is full")
-
-    character["gold"] -= cost
-    character["inventory"].append(item_id)
+    # Success
     return True
 
 
@@ -417,21 +422,18 @@ def sell_item(character, item_id, item_data):
     Returns: Amount of gold received
     Raises: ItemNotFoundError if item not in inventory
     """
-
-     # Item must exist in inventory
-    if item_id not in character["inventory"]:
+    if item_id not in character['inventory']:
         raise ItemNotFoundError(f"Item '{item_id}' not found in inventory.")
 
-    item = item_data[item_id]
-    sell_price = item["cost"] // 2
-
     # Remove item from inventory
-    character["inventory"].remove(item_id)
+    character['inventory'].remove(item_id)
 
-    # Add gold
-    character["gold"] += sell_price
+    # Gain half of the cost
+    cost = item_data.get('cost', 0)
+    gold_gained = cost // 2
+    character['gold'] += gold_gained
 
-    return sell_price
+    return gold_gained
 
     # TODO: Implement selling
     # Check if character has item
