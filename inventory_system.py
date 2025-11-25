@@ -388,21 +388,25 @@ def purchase_item(character, item_id, item_data):
     if item_id not in item_data:
         raise ItemNotFoundError(f"Item '{item_id}' not available in shop.")
 
-    # Get the cost of the item from the nested dictionary
+    # Get item cost
     cost = item_data[item_id].get('cost', 0)
 
     # Check if character has enough gold
     if character.get('gold', 0) < cost:
         raise InsufficientResourcesError(f"Not enough gold to purchase {item_id} (cost: {cost})")
 
-    # Deduct gold from character
+    # Deduct gold
     character['gold'] -= cost
 
-    # Add the item to inventory if not already present
-    if item_id not in character['inventory']:
-        character['inventory'].append(item_id)
+    # Ensure the inventory key exists
+    if 'inventory' not in character:
+        character['inventory'] = []
+
+    # Add item to inventory
+    character['inventory'].append(item_id)
 
     return True
+
 
     # TODO: Implement purchasing
     # Check if character has enough gold
@@ -423,25 +427,21 @@ def sell_item(character, item_id, item_data):
     Returns: Amount of gold received
     Raises: ItemNotFoundError if item not in inventory
     """
-     # Ensure the item exists in inventory
-    if item_id not in character.get('inventory', []):
+    
+    # Ensure inventory exists
+    if 'inventory' not in character or item_id not in character['inventory']:
         raise ItemNotFoundError(f"Item '{item_id}' not found in inventory.")
-
-    # Ensure the shop has the item data to determine cost
-    if item_id not in item_data:
-        raise ItemNotFoundError(f"Item data for '{item_id}' not found in shop records.")
 
     # Remove item from inventory
     character['inventory'].remove(item_id)
 
-    # Sell for half the purchase cost (floor division for integers)
+    # Gain half of the item's cost
     cost = item_data[item_id].get('cost', 0)
-    gold_received = cost // 2
+    gold_gained = cost // 2
+    character['gold'] += gold_gained
 
-    # Add gold to character
-    character['gold'] += gold_received
+    return gold_gained
 
-    return gold_received
 
     # TODO: Implement selling
     # Check if character has item
