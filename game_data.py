@@ -47,7 +47,7 @@ def load_quests(filename="data/quests.txt"):
     if not os.path.exists(filename):
         raise MissingDataFileError(f"Quest file not found: {filename}")
 
-    quests = {}
+    quests = {} # empty dictionary at the beginning (no quests)
     try:
         with open(filename, "r") as f:
             lines = f.read().splitlines()
@@ -63,8 +63,11 @@ def load_quests(filename="data/quests.txt"):
                     for field in required_fields:
                         if field not in current_quest:
                             raise InvalidDataFormatError(f"Missing field '{field}' in quest")
-                    quest_id = current_quest["QUEST_ID"]
+                    # Convert all keys to lowercase (test expects lowercase)
+                    current_quest = {k.lower(): v for k, v in current_quest.items()}
+                    quest_id = current_quest["quest_id"]
                     quests[quest_id] = current_quest
+
                     current_quest = {}
                 continue
 
