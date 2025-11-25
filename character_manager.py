@@ -117,28 +117,26 @@ def save_character(character, save_directory="data/save_games"):
     # Handle any file I/O errors appropriately
     # Lists should be saved as comma-separated values
 
-    os.makedirs(save_directory, exist_ok=True) # Creates a directory based off the os
-    filename = f"{character['name']}_save.txt"
-    filepath = os.path.join(save_directory, filename)
 
-    try: # Formatted as directed by the docstring above
-        with open(filepath, "w") as file:
-            file.write(f"NAME: {character['name']}\n")
-            file.write(f"CLASS: {character['class']}\n")
-            file.write(f"LEVEL: {character['level']}\n")
-            file.write(f"HEALTH: {character['health']}\n")
-            file.write(f"MAX_HEALTH: {character['max_health']}\n")
-            file.write(f"STRENGTH: {character['strength']}\n")
-            file.write(f"MAGIC: {character['magic']}\n")
-            file.write(f"EXPERIENCE: {character['experience']}\n")
-            file.write(f"GOLD: {character['gold']}\n")
-            file.write(f"INVENTORY: {','.join(character['inventory'])}\n")
-            file.write(f"ACTIVE_QUESTS: {','.join(character['active_quests'])}\n")
-            file.write(f"COMPLETED_QUESTS: {','.join(character['completed_quests'])}\n")
+# Make sure the save directory exists
+    os.makedirs(save_directory, exist_ok=True)
+
+    # Build the save file path using character's name
+    filepath = os.path.join(save_directory, f"{character['name']}_save.txt")
+
+    try:
+        with open(filepath, "w") as f:
+            for key, value in character.items():
+                # If the value is a list (like inventory or quests), join it as comma-separated
+                if isinstance(value, list):
+                    value = ",".join(value)
+                # Write the line as key:value
+                f.write(f"{key}:{value}\n")
         return True
-    except Exception:
+    except Exception as e:
+        # Could log e here if needed
         return False
-
+    
 def load_character(character_name, save_directory="data/save_games"):
 
     """
@@ -160,57 +158,47 @@ def load_character(character_name, save_directory="data/save_games"):
     # Validate data format → InvalidSaveDataError
     # Parse comma-separated lists back into Python lists
 
-    filename = f"{character_name}_save.txt"
-    filepath = os.path.join(save_directory, filename)
+    
+    from custom_exceptions import CharacterNotFoundError, InvalidSaveDataError
 
+    # Build full file path for the save file
+    filepath = os.path.join(save_directory, f"{character_name}_save.txt")
+
+    # Check if the file exists
     if not os.path.exists(filepath):
         raise CharacterNotFoundError(f"Save file not found for: {character_name}")
 
-    # Step 1: Read file safely
+    character = {}
+
     try:
-        with open(filepath, "r") as file:
-            lines = file.readlines()
-    except Exception:
-        raise SaveFileCorruptedError("Could not read save file")
+        with open(filepath, "r") as f:
+            for line in f:
+                # Skip lines that don't contain a colon (invalid line)
+                if ":" not in line:
+                    continue
 
-    character_raw = {} # unformatted (raw) information is made into a dictionary
+                # Split at the first colon into key and value
+                key, value = line.strip().split(":", 1)
 
-    # Step 2: Parse key-value pairs
-    try:
-        for line in lines:
-            line = line.strip()
-            if not line or ": " not in line:
-                continue  # skip empty or malformed lines
+                # Strip extra whitespace from key and value
+                key = key.strip()
+                value = value.strip()
 
-            key, value = line.split(": ", 1)
-            key = key.strip()
-            value = value.strip()
+                # Convert comma-separated strings back into lists
+                if "," in value:
+                    value = value.split(",")
+                # Convert numeric strings to integers
+                elif value.isdigit():
+                    value = int(value)
 
-            character_raw[key] = value
+                # Store in character dictionary
+                character[key] = value
 
-    except Exception:
-        raise InvalidSaveDataError("Save data format is invalid")
+    except Exception as e:
+        # If any issue occurs while reading or parsing the file, raise an error
+        raise InvalidSaveDataError(f"Save data format is invalid for {character_name}: {e}")
 
-    # Step 3: Convert certain fields to correct types
-    try:
-        # Numeric fields
-        int_fields = ["level", "health", "max_health", "strength", "magic", "experience", "gold"]
-        for field in int_fields:
-            if field in character_raw:
-                character_raw[field] = int(character_raw[field])
-
-        # List fields
-        list_fields = ["inventory", "active_quests", "completed_quests"]
-        for field in list_fields:
-            if field in character_raw:
-                # Empty string becomes empty list
-                character_raw[field] = character_raw[field].split(",") if character_raw[field] else []
-
-    except Exception:
-        raise InvalidSaveDataError("Failed to convert save data types")
-
-    return character_raw
-    
+    return character
 
 def list_saved_characters(save_directory="data/save_games"):
 
