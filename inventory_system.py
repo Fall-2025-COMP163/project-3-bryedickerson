@@ -270,7 +270,7 @@ def equip_armor(character, item_id, item_data):
     if item_id not in character["inventory"]:
         raise ItemNotFoundError(f"Armor '{item_id}' not found in inventory")
 
-    item = item_data[item_id]
+    item = item_data
 
     # Must be armor
     if item["type"] != "armor":
