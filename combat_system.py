@@ -10,7 +10,6 @@ AI Usage: [Document any AI assistance used]
 
 # AI Usage (2): Used AI (ChatGPT) to help structure/finish functions if I had errors or if I didn't have the correct formatting
 
-
 Handles combat mechanics
 """
 
@@ -45,42 +44,45 @@ def create_enemy(enemy_type):
     # Return dictionary with: name, health, max_health, strength, magic, xp_reward, gold_reward
 
     enemies = {
-        "goblin": {
-            "name": "goblin",
+        "Goblin": {
+            "name": "Goblin",
+            "type": "Goblin",
+            "health": 30,
+            "max_health": 30,
+            "strength": 5,
+            "magic": 0,
+            "xp_reward": 10,
+            "gold_reward": 5
+        },
+        "Orc": {
+            "name": "Orc",
+            "type": "Orc",
             "health": 50,
             "max_health": 50,
-            "strength": 8,
-            "magic": 2,
-            "xp_reward": 25,
-            "gold_reward": 10
-        },
-        "orc": {
-            "name": "orc",
-            "health": 80,
-            "max_health": 80,
             "strength": 12,
-            "magic": 5,
-            "xp_reward": 50,
-            "gold_reward": 25
-        },
-        "dragon": {
-            "name": "dragon",
-            "health": 200,
-            "max_health": 200,
-            "strength": 25,
-            "magic": 15,
-            "xp_reward": 200,
-            "gold_reward": 100
+            "magic": 2,
+            "xp_reward": 20,
+            "gold_reward": 12
         }
+        # Add more enemies here...
     }
 
-    # returns the enemy if valid
-    if enemy_type in enemies:
-        return enemies[enemy_type]
+    if enemy_type not in enemies:
+        raise InvalidTargetError(f"Unknown enemy: {enemy_type}")
 
-    # otherwise, raise the InvalidTargetError
-    raise InvalidTargetError(f"Enemy type '{enemy_type}' is not recognized.")
+    enemy = enemies[enemy_type]
 
+    # Create a BRAND NEW dictionary so nothing modifies the template
+    return {
+        "name": enemy["name"],
+        "type": enemy["type"],
+        "health": enemy["health"],
+        "max_health": enemy["max_health"],
+        "strength": enemy["strength"],
+        "magic": enemy["magic"],
+        "xp_reward": enemy["xp_reward"],
+        "gold_reward": enemy["gold_reward"]
+    }
     
 
 def get_random_enemy_for_level(character_level):
@@ -482,10 +484,9 @@ def get_victory_rewards(enemy):
 
 # xp/gold dictionary, used .get() to prevent any key errors
     return {
-        "xp:": enemy.get("xp_reward", 0),
-        "gold:": enemy.get("gold_reward", 0)
-        }
-
+        "xp": enemy.get("xp_reward", 0),
+        "gold": enemy.get("gold_reward", 0)
+    }
     
 
 def display_combat_stats(character, enemy):
