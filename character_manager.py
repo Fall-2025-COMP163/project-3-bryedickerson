@@ -117,38 +117,27 @@ def save_character(character, save_directory="data/save_games"):
     # Handle any file I/O errors appropriately
     # Lists should be saved as comma-separated values
 
-# 1. Ensure save directory exists
-    os.makedirs(save_directory, exist_ok=True)
-    
-    character_name = character.get("name", "temp_character") # Ensure we have a name
-    file_path = os.path.join(save_directory, f"{character_name}.txt")
+    os.makedirs(save_directory, exist_ok=True) # Creates a directory based off the os
+    filename = f"{character['name']}_save.txt"
+    filepath = os.path.join(save_directory, filename)
 
-    # Prepare data for writing
-    lines = []
-    
-    # Simple stats (non-list, non-dict)
-    for key, value in character.items():
-        if key in ["level", "xp", "gold", "health", "max_health", "strength", "magic", "name"]:
-             lines.append(f"{key.upper()}:{value}")
-        elif key == "inventory":
-            # Inventory must be converted to a comma-separated string
-            inventory_str = ",".join(value)
-            lines.append(f"{key.upper()}:{inventory_str}")
-        elif key in ["equipped_weapon", "equipped_armor"]:
-            # Ensure None is written as the string 'None'
-            equipped_str = value if value is not None else "None"
-            lines.append(f"{key.upper()}:{equipped_str}")
-
-    try:
-        with open(file_path, 'w') as f:
-            f.write('\n'.join(lines))
-            
-    except Exception as e:
-        print(f"Error saving character {character_name}: {e}")
-        # raise FileSaveError(f"Failed to save file for {character_name}.")
-        raise # Re-raise for debugging/testing
-    
-    return True
+    try: # Formatted as directed by the docstring above
+        with open(filepath, "w") as file:
+            file.write(f"NAME: {character['name']}\n")
+            file.write(f"CLASS: {character['class']}\n")
+            file.write(f"LEVEL: {character['level']}\n")
+            file.write(f"HEALTH: {character['health']}\n")
+            file.write(f"MAX_HEALTH: {character['max_health']}\n")
+            file.write(f"STRENGTH: {character['strength']}\n")
+            file.write(f"MAGIC: {character['magic']}\n")
+            file.write(f"EXPERIENCE: {character['experience']}\n")
+            file.write(f"GOLD: {character['gold']}\n")
+            file.write(f"INVENTORY: {','.join(character['inventory'])}\n")
+            file.write(f"ACTIVE_QUESTS: {','.join(character['active_quests'])}\n")
+            file.write(f"COMPLETED_QUESTS: {','.join(character['completed_quests'])}\n")
+        return True
+    except Exception:
+        return False
 
 def load_character(character_name, save_directory="data/save_games"):
 
@@ -171,51 +160,86 @@ def load_character(character_name, save_directory="data/save_games"):
     # Validate data format → InvalidSaveDataError
     # Parse comma-separated lists back into Python lists
 
-    file_path = os.path.join(save_directory, f"{character_name}.txt") # Use .txt or similar extension
+    filename = f"{character_name}_save.txt"
+    filepath = os.path.join(save_directory, filename)
 
-    if not os.path.exists(file_path):
-        # Raise the specific error expected by the test framework
-        # raise CharacterNotFoundError(f"Character '{character_name}' not found.")
-        raise FileNotFoundError(f"Character '{character_name}' save file not found.")
+    if not os.path.exists(filepath):
+        raise CharacterNotFoundError(f"Save file not found for: {character_name}")
 
-    character = {}
-    
     try:
-        with open(file_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line or ':' not in line:
-                    continue # Skip empty or invalid lines
+        with open(filepath, "r") as file:
+            lines = file.readlines()
+    except Exception:
+        raise SaveFileCorruptedError("Could not read save file")
 
-                key, value_str = line.split(':', 1)
-                
-                # Clean up key and value
-                key = key.strip()
-                value_str = value_str.strip()
-                
-                # --- TYPE CONVERSION ---
-                if key in ["LEVEL", "XP", "GOLD", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC"]:
-                    character[key.lower()] = int(value_str) # Convert stats to int
-                elif key == "INVENTORY":
-                    # Inventory is a list, split by comma. Handle empty inventory case.
-                    if value_str:
-                        character[key.lower()] = value_str.split(',')
-                    else:
-                        character[key.lower()] = []
-                elif key in ["EQUIPPED_WEAPON", "EQUIPPED_ARMOR"]:
-                    # Equipped items are strings; use None if value is 'None'
-                    character[key.lower()] = None if value_str == "None" else value_str
-                else:
-                    # Default to string for NAME
-                    character[key.lower()] = value_str
+    character_raw = {}
+    try:
+        for line in lines:
+            if ": " not in line:
+                continue  # skip empty lines
+            key, value = line.strip().split(": ", 1)
+            character_raw[key] = value
+    except Exception:
+        raise InvalidSaveDataError("Save data format is invalid")
 
-    except Exception as e:
-        # Catch unexpected errors during reading/parsing
-        print(f"Error loading character {character_name}: {e}")
-        # raise CorruptedDataError(f"Save file for {character_name} is corrupted.")
-        raise # Re-raise for debugging/testing
-        
-    return character
+    # Convert numeric fields
+    int_fields = ["LEVEL", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC", "EXPERIENCE", "GOLD"]
+    for field in int_fields:
+        if field in character_raw:
+            character_raw[field] = int(character_raw[field])
+
+    # Convert lists
+    list_fields = ["INVENTORY", "ACTIVE_QUESTS", "COMPLETED_QUESTS"]
+    for field in list_fields:
+        if field in character_raw:
+            character_raw[field] = character_raw[field].split(",") if character_raw[field] else []
+
+    # Map keys to lowercase for consistency
+    key_mapping = {
+        "NAME": "name",
+        "CLASS": "class",
+        "LEVEL": "level",
+        "HEALTH": "health",
+        "MAX_HEALTH": "max_health",
+        "STRENGTH": "strength",
+        "MAGIC": "magic",
+        "EXPERIENCE": "experience",
+        "GOLD": "gold",
+        "INVENTORY": "inventory",
+        "ACTIVE_QUESTS": "active_quests",
+        "COMPLETED_QUESTS": "completed_quests"
+        }
+
+    loaded_character = {}
+    for old_key, new_key in key_mapping.items():
+        if old_key not in character_raw:
+            raise InvalidSaveDataError(f"Missing field in save file: {old_key}")
+        loaded_character[new_key] = character_raw[old_key]
+
+    return loaded_character
+    
+
+def list_saved_characters(save_directory="data/save_games"):
+
+    """
+    Get list of all saved character names
+    
+    Returns: List of character names (without _save.txt extension)
+    """
+    # TODO: Implement this function
+    # Return empty list if directory doesn't exist
+    # Extract character names from filenames
+
+    
+    if not os.path.exists(save_directory):
+        return []
+    files = os.listdir(save_directory)
+    return [f.replace("_save.txt", "") for f in files if f.endswith("_save.txt")]
+
+
+ # ChatGPT suggested to use these commands above 
+ # They act as a filter for files that end with "_save.txt" only, and keeps the ones that do.
+    
 
 def delete_character(character_name, save_directory="data/save_games"):
 
@@ -455,5 +479,3 @@ if __name__ == "__main__":
     #     print("Character not found")
     # except SaveFileCorruptedError:
     #     print("Save file corrupted")
-
-
