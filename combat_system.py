@@ -44,7 +44,7 @@ def create_enemy(enemy_type):
     # Return dictionary with: name, health, max_health, strength, magic, xp_reward, gold_reward
 
     enemies = {
-        "Goblin": {
+        "goblin": {
             "name": "Goblin",
             "type": "Goblin",
             "health": 30,
@@ -54,7 +54,7 @@ def create_enemy(enemy_type):
             "xp_reward": 10,
             "gold_reward": 5
         },
-        "Orc": {
+        "orc": {
             "name": "Orc",
             "type": "Orc",
             "health": 50,
@@ -64,24 +64,24 @@ def create_enemy(enemy_type):
             "xp_reward": 20,
             "gold_reward": 12
         }
-        # Add more enemies here...
     }
+
+    enemy_type = enemy_type.lower()  # normalize input
 
     if enemy_type not in enemies:
         raise InvalidTargetError(f"Unknown enemy: {enemy_type}")
 
-    enemy = enemies[enemy_type]
-
-    # Create a BRAND NEW dictionary so nothing modifies the template
+    # Return a new dictionary so modifications in battle don't affect template
+    e = enemies[enemy_type]
     return {
-        "name": enemy["name"],
-        "type": enemy["type"],
-        "health": enemy["health"],
-        "max_health": enemy["max_health"],
-        "strength": enemy["strength"],
-        "magic": enemy["magic"],
-        "xp_reward": enemy["xp_reward"],
-        "gold_reward": enemy["gold_reward"]
+        "name": e["name"],
+        "type": e["type"],
+        "health": e["health"],
+        "max_health": e["max_health"],
+        "strength": e["strength"],
+        "magic": e["magic"],
+        "xp_reward": e["xp_reward"],
+        "gold_reward": e["gold_reward"]
     }
     
 
