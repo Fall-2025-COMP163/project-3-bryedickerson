@@ -389,22 +389,24 @@ def purchase_item(character, item_id, item_data):
         raise ItemNotFoundError(f"Item '{item_id}' not available in shop.")
 
     # Get item cost
-    cost = item_data[item_id].get('cost', 0)
+    cost = item_data["cost"]
 
     # Check if character has enough gold
-    if character.get('gold', 0) < cost:
-        raise InsufficientResourcesError(f"Not enough gold to purchase {item_id} (cost: {cost})")
+    if character["gold"] < cost:
+        raise InsufficientResourcesError(f"You do not have enough gold to purchase {item_id} (cost: {cost})")
 
-    # Deduct gold
-    character['gold'] -= cost
 
     # Ensure the inventory key exists
     if 'inventory' not in character:
         character['inventory'] = []
 
-    # Add item to inventory
+    if len(character["inventory"]) >= 20:
+        raise InventoryFullError("Your inventory is full. Cannot buy any more items")
+        
+    # Deduct gold (for a successful purchase)
+    character['gold'] -= cost
+    # Add purchased item to inventory
     character['inventory'].append(item_id)
-
     return True
 
 
