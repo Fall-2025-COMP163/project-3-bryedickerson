@@ -188,9 +188,7 @@ def validate_quest_data(quest_dict):
             value = quest_dict[field]
         elif field.upper() in quest_dict:
             value = quest_dict[field.upper()]
-        else:
-            raise InvalidDataFormatError(f"Missing required field: {field}")
-
+            
         # Optional: Type-checking
         if not isinstance(value, expected_type):
             raise InvalidDataFormatError(f"Invalid type for {field}: expected {expected_type.__name__}")
