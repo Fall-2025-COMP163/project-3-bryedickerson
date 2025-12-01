@@ -182,6 +182,8 @@ def validate_quest_data(quest_dict):
         "PREREQUISITE": str,
     }
 
+    value = quest_dict[field]
+    
     for field, expected_type in required_fields.items():
         # Support both lowercase and uppercase
         if field in quest_dict:
