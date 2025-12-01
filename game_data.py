@@ -184,17 +184,16 @@ def validate_quest_data(quest_dict):
 
     lowercase_keys = {key.lower(): value for key, value in quest_dict.items()}
     value = quest_dict[field]
-    
+
+    # Validation loop
     for field, expected_type in required_fields.items():
-        # Support both lowercase and uppercase
-        if field in quest_dict:
-            value = quest_dict[field]
-        elif field.upper() in quest_dict:
-            value = quest_dict[field.upper()]
+        if field not in normalized:
+            raise InvalidDataFormatError(f"Missing required field: {field}")
             
-        # Optional: Type-checking
+        value = normalized[field]
+        
         if not isinstance(value, expected_type):
-            raise InvalidDataFormatError(f"Invalid type for {field}: expected {expected_type.__name__}")
+            raise InvalidDataFormatError(f"Invalid type for field '{field}': expected {expected_type.__name__}")
 
     return True
     # TODO: Implement validation
