@@ -182,18 +182,26 @@ def validate_quest_data(quest_dict):
         "PREREQUISITE": str,
     }
 
-    for field, expected_type in required_fields.items():
-        if field not in quest_dict:
+     for field, expected_type in required_fields.items():
+
+        # checks for lowercase version
+        if field in quest_dict:
+            value = quest_dict[field]
+
+        # check for uppercase (e.g., QUEST_ID)
+        elif field.upper() in quest_dict:
+            value = quest_dict[field.upper()]
+
+        else:
             raise InvalidDataFormatError(f"Missing required field: {field}")
 
-        # Check type
-        if not isinstance(quest_dict[field], expected_type):
+        # type check
+        if not isinstance(value, expected_type):
             raise InvalidDataFormatError(
                 f"Field '{field}' must be of type {expected_type.__name__}"
             )
 
     return True
-
     # TODO: Implement validation
     # Check that all required keys exist
     # Check that numeric values are actually numbers
