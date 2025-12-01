@@ -384,10 +384,7 @@ def purchase_item(character, item_id, item_data):
         InsufficientResourcesError if not enough gold
         InventoryFullError if inventory is full
     """
-# Ensure the item exists in the shop's data
-    if item_id not in item_data:
-        raise ItemNotFoundError(f"Item '{item_id}' not available in shop.")
-
+    
     # Get item cost
     cost = item_data["cost"]
 
