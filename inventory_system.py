@@ -435,8 +435,9 @@ def sell_item(character, item_id, item_data):
     character['inventory'].remove(item_id)
 
     # Gain half of the item's cost
-    cost = item_data[item_id].get('cost', 0)
+    cost = item_data["cost"]
     gold_gained = cost // 2
+    
     character['gold'] += gold_gained
 
     return gold_gained
