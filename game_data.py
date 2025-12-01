@@ -182,6 +182,7 @@ def validate_quest_data(quest_dict):
         "PREREQUISITE": str,
     }
 
+    lowercase_keys = {key.lower(): value for key, value in quest_dict.items()}
     value = quest_dict[field]
     
     for field, expected_type in required_fields.items():
