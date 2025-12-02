@@ -174,7 +174,14 @@ def validate_quest_data(quest_dict):
     """
     
     required_fields = {
-        "quest_id": str, "title": str, "description": str, "reward_xp": int, "reward_gold": int, "required_level":
+        "quest_id": str, 
+        "title": str, 
+        "description": str, 
+        "reward_xp": int, 
+        "reward_gold": int, 
+        "required_level": int, 
+        "prerequisite": str
+    }
     # Loops through fields & checks if they're in the quest dictionary
     for key, expected_type in required_fields.items():
         # Raises InvalidDataFormatError if the key is not in the quest dictionary
