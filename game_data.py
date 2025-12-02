@@ -173,29 +173,24 @@ def validate_quest_data(quest_dict):
     Raises: InvalidDataFormatError if missing required fields
     """
     required_fields = {
-        "QUEST_ID": str,
-        "TITLE": str,
-        "DESCRIPTION": str,
-        "REWARD_XP": int,
-        "REWARD_GOLD": int,
-        "REQUIRED_LEVEL": int,
-        "PREREQUISITE": str,
+        "quest_id": str,
+        "title": str,
+        "description": str,
+        "reward_xp": int,
+        "reward_gold": int,
+        "required_level": int,
+        "prerequisite": str,
     }
 
-    lowercase_keys = {key.lower(): value for key, value in quest_dict.items()}
-    value = quest_dict[field]
+    for key, expected_type in required_fields.items():
+        if key not in quest_dict:
+            raise InvalidDataFormatError(f"Missing required field(s): {key}")
 
-    # Validation loop
-    for field, expected_type in required_fields.items():
-        if field not in normalized:
-            raise InvalidDataFormatError(f"Missing required field: {field}")
+        if not isinstance(quest_dict[key], expected_key):
+            raise InvalidDataFormatError(f"Field {key} should be this type: {expected_type.__name__}")
             
-        value = normalized[field]
-        
-        if not isinstance(value, expected_type):
-            raise InvalidDataFormatError(f"Invalid type for field '{field}': expected {expected_type.__name__}")
-
     return True
+    
     # TODO: Implement validation
     # Check that all required keys exist
     # Check that numeric values are actually numbers
