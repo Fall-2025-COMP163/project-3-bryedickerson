@@ -172,21 +172,16 @@ def validate_quest_data(quest_dict):
     Returns: True if valid
     Raises: InvalidDataFormatError if missing required fields
     """
+    
     required_fields = {
-        "quest_id": str,
-        "title": str,
-        "description": str,
-        "reward_xp": int,
-        "reward_gold": int,
-        "required_level": int,
-        "prerequisite": str,
-    }
-
+        "quest_id": str, "title": str, "description": str, "reward_xp": int, "reward_gold": int, "required_level":
+    # Loops through fields & checks if they're in the quest dictionary
     for key, expected_type in required_fields.items():
+        # Raises InvalidDataFormatError if the key is not in the quest dictionary
         if key not in quest_dict:
             raise InvalidDataFormatError(f"Missing required field(s): {key}")
-
-        if not isinstance(quest_dict[key], expected_key):
+        # Also raises InvalidDataFormatError if the key does not match its expected type
+        if not isinstance(quest_dict[key], expected_type):
             raise InvalidDataFormatError(f"Field {key} should be this type: {expected_type.__name__}")
             
     return True
@@ -223,15 +218,11 @@ def validate_item_data(item_dict):
 
         # Check type
         if not isinstance(item_dict[field], expected_type):
-            raise InvalidDataFormatError(
-                f"Field '{field}' must be of type {expected_type.__name__}"
-            )
+            raise InvalidDataFormatError(f"Field '{field}' must be of type {expected_type.__name__}")
 
     # Check item type validity
     if item_dict["TYPE"] not in valid_types:
-        raise InvalidDataFormatError(
-            f"Invalid item type: {item_dict['TYPE']}. Must be one of {valid_types}"
-        )
+        raise InvalidDataFormatError(f"Invalid item type: {item_dict['TYPE']}. Must be one of {valid_types}")
 
     return True
 
@@ -278,6 +269,7 @@ def create_default_data_files():
                     "COST:10\n"
                     "DESCRIPTION:Restores 20 health.\n\n"
                 )
+                
         except PermissionError:
             print("Permission denied: Cannot create default items.txt")
 
