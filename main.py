@@ -82,30 +82,8 @@ def new_game():
     
     Creates character and starts game loop
     """
-    def new_game():
-        print("=== CREATE NEW CHARACTER ===")
-
-    # List of all valid classes
-        valid_classes = ["Warrior", "Mage", "Rogue", "Cleric"]
-
-        name = input("Enter character name: ")
-
-        print(f"Choose a class: {', '.join(valid_classes)}")
-        character_class = input("Enter class: ")
-
-    # Call the correct function (NOT the variable)
-        current_character = create_character(name, character_class)
-
-        print("\nCharacter created successfully!")
-        print(current_character)
-
-    return current_character
-
-
-    # TODO: Replace with actual game loop
-    # start_game_loop(current_character)
-
-
+    global current_character
+    
     # TODO: Implement new game creation
     # Get character name from user
     # Get character class from user
