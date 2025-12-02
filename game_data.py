@@ -228,8 +228,8 @@ def validate_item_data(item_dict):
             raise InvalidDataFormatError(f"Field '{field}' must be of type {expected_type.__name__}")
 
     # Check item type validity
-    if item_dict["TYPE"] not in valid_types:
-        raise InvalidDataFormatError(f"Invalid item type: {item_dict['TYPE']}. Must be one of {valid_types}")
+    if item_dict["type"] not in valid_types:
+        raise InvalidDataFormatError(f"Invalid item type: {item_dict['type']}. Must be one of {valid_types}")
 
     return True
 
