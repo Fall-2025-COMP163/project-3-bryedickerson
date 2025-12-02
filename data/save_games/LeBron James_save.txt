@@ -1,0 +1,24 @@
+NAME:LeBron James
+CLASS:Warrior
+LEVEL:1
+HEALTH:120
+MAX_HEALTH:120
+STRENGTH:15
+MAGIC:5
+EXPERIENCE:0
+GOLD:100
+INVENTORY:
+ACTIVE_QUESTS:
+COMPLETED_QUESTS:
+name:LeBron James
+class:Warrior
+level:1
+health:100
+max_health:100
+strength:10
+magic:10
+experience:0
+gold:100
+inventory:
+active_quests:
+completed_quests:
