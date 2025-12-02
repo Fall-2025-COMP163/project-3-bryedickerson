@@ -209,12 +209,12 @@ def validate_item_data(item_dict):
     Raises: InvalidDataFormatError if missing required fields or invalid type
     """
     required_fields = {
-        "ITEM_ID": str,
-        "NAME": str,
-        "TYPE": str,
-        "EFFECT": str,
-        "COST": int,
-        "DESCRIPTION": str,
+        "item_id": str,
+        "name": str,
+        "type": str,
+        "effect": str,
+        "cost": int,
+        "description": str,
     }
 
     valid_types = ["weapon", "armor", "consumable"]
