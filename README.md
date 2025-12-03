@@ -149,3 +149,27 @@ Test files are provided for your learning but are protected. Modifying test file
 - Academic integrity investigation
 
 You can view tests to understand requirements, but any modifications will be automatically detected.
+
+
+
+**Module Architecture:** Explain your module organization
+- Each file's modules are organized based on their function related to the game itself, which runs through the main.py file. For example, all character-related functions (such as the creation, deletion, and saving functions) are in the character_manager.py file and the enemy information (like xp gained from defeating them, the level requirements to face them in battle, etc.) is in the combat_system.py file.
+
+**Exception Strategy:** Describe when/why you raise specific exceptions
+- Every exception used is to catch errors in special cases. For example, the ItemNotFoundError in inventory_system.py is raised when an item is not found in a character's inventory. In the same file, there is a special exception raised when the character's inventory is at max capacity (InventoryFullError)
+
+**Design Choices:** Justify major decisions
+- I didn't make any major decisions in my code; I kept it close to the given parameters
+
+**AI Usage:** Detail what AI assistance you used
+- AI Used: ChatGPT
+- Used for: Structuring functions, test case help, error-handling.
+
+**How to Play:** Instructions for running the game
+- When the game first opens, it will give 3 options: 1 for a new game, 2 to load a game, and 3 for exit
+- If you choose option 1, you will be prompted to type in your name and character class
+- If you choose option 2, you will be able to load your previous character (if it was already saved) and continue from where you left off.
+- *While trying to run the code for myself, I noticed that it did not run properly, but it did pass the test cases on GitHub*
+
+
+
